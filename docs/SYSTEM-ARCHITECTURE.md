@@ -129,6 +129,30 @@ Action and job state are separate:
 - An **attempt** records one provider execution attempt.
 - A **provider operation** maps the logical action to an external operation identity used for lookup/reconciliation.
 
+### Action state machine
+
+ActionLedger preserves the approved action states and their legal transitions:
+
+- `AWAITING_APPROVAL` may move to `READY`, `DENIED`, or `CANCELLED`.
+- `READY` may move to `RUNNING` or `CANCELLED`.
+- `RUNNING` may move to `SUCCEEDED`, `RETRY_WAIT`, `OUTCOME_UNKNOWN`, or `FAILED`.
+- `RETRY_WAIT` may move to `READY` or `CANCELLED`.
+- `OUTCOME_UNKNOWN` may move only to `RECONCILING`.
+- `RECONCILING` may move to `SUCCEEDED`, `READY`, `FAILED`, or `OUTCOME_UNKNOWN`.
+
+`SUCCEEDED`, `FAILED`, `DENIED`, and `CANCELLED` are terminal states with no outgoing transitions.
+
+Workflow status is derived from child action states in this precedence:
+
+1. Empty workflow: `CREATED`.
+2. Any `OUTCOME_UNKNOWN` action: `NEEDS_ATTENTION`.
+3. Any `AWAITING_APPROVAL` action: `WAITING_APPROVAL`.
+4. Active execution, retry, or reconciliation (`RUNNING`, `READY`, `RETRY_WAIT`, `RECONCILING`): `RUNNING`.
+5. All actions `SUCCEEDED`: `SUCCEEDED`.
+6. Successful actions mixed with failed, denied, or cancelled terminal actions: `PARTIALLY_COMPLETED`.
+7. All actions `CANCELLED`: `CANCELLED`.
+8. Other fully terminal unsuccessful workflows: `FAILED`.
+
 Initial job types:
 
 - `PLAN_WORKFLOW`

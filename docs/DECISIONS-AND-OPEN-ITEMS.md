@@ -43,3 +43,29 @@
 ## Reconciliation notes
 
 The API spec requires `PLAN_WORKFLOW` jobs and HTTP idempotency. The consolidated database schema includes `workflow_id` on `execution_jobs`, nullable `action_id` for planning jobs, and the `idempotency_records` table. These must be reflected in migrations.
+
+## Accepted action-state transitions
+
+The following action-state transitions are approved for M1 and later execution milestones:
+
+- `AWAITING_APPROVAL`: `READY`, `DENIED`, `CANCELLED`
+- `READY`: `RUNNING`, `CANCELLED`
+- `RUNNING`: `SUCCEEDED`, `RETRY_WAIT`, `OUTCOME_UNKNOWN`, `FAILED`
+- `RETRY_WAIT`: `READY`, `CANCELLED`
+- `OUTCOME_UNKNOWN`: `RECONCILING`
+- `RECONCILING`: `SUCCEEDED`, `READY`, `FAILED`, `OUTCOME_UNKNOWN`
+
+The terminal states are `SUCCEEDED`, `FAILED`, `DENIED`, and `CANCELLED`. Terminal states have no outgoing transitions.
+
+## Accepted workflow-status derivation
+
+Workflow status is derived in this precedence order:
+
+1. Empty workflow: `CREATED`.
+2. Any `OUTCOME_UNKNOWN` action: `NEEDS_ATTENTION`.
+3. Any `AWAITING_APPROVAL` action: `WAITING_APPROVAL`.
+4. Any `RUNNING`, `READY`, `RETRY_WAIT`, or `RECONCILING` action: `RUNNING`.
+5. All actions `SUCCEEDED`: `SUCCEEDED`.
+6. Mixed successful and other terminal outcomes: `PARTIALLY_COMPLETED`.
+7. All actions `CANCELLED`: `CANCELLED`.
+8. Other fully terminal unsuccessful workflows: `FAILED`.
