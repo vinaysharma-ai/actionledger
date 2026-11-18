@@ -9,11 +9,16 @@
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"lint": "biome lint .",
+		"build": "pnpm --filter @actionledger/contracts build && pnpm --filter @actionledger/domain build",
+		"pretest": "pnpm build",
+		"test": "vitest run",
 		"typecheck": "tsc --noEmit -p tsconfig.base.json",
 		"check": "pnpm format:check && pnpm lint && pnpm typecheck"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.6.8",
-		"typescript": "5.9.3"
+		"@types/node": "^24.19.2",
+		"typescript": "5.9.3",
+		"vitest": "^4.1.12"
 	}
 }
