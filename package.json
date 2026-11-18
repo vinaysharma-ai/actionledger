@@ -1,0 +1,19 @@
+{
+	"name": "actionledger",
+	"private": true,
+	"packageManager": "pnpm@11.15.1",
+	"engines": {
+		"node": ">=24 <27"
+	},
+	"scripts": {
+		"format": "biome format --write .",
+		"format:check": "biome format .",
+		"lint": "biome lint .",
+		"typecheck": "tsc --noEmit -p tsconfig.base.json",
+		"check": "pnpm format:check && pnpm lint && pnpm typecheck"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.6.8",
+		"typescript": "5.9.3"
+	}
+}
